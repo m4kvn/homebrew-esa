@@ -1,4 +1,4 @@
-REPOSITORY_URL="https:.//github.com/m4kvn/homebrew-esa".freeze
+REPOSITORY_URL="https://github.com/m4kvn/homebrew-esa".freeze
 HOMEBREW_ESA_VERSION="0.0.1".freeze
 
 class Esa < Formula
