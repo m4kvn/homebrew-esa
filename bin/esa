@@ -1,10 +1,29 @@
-#!/bin/sh -eu
+#!/bin/bash -eu
 
+while getopts n OPT
+do
+    case $OPT in
+        n) FLAG_A=1 ;;
+        \?) : ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+# ESA_TOKENがない場合に終了
 [ -z "${ESA_TOKEN:-}" ] && echo '[esa] Not found ESA_TOKEN.' && exit 1
 
-[ -z "${ESA_TEAM:-}" ] && echo '[esa] Not found ESA_TEAM.' && exit 1 || \
+# ESA_TEAMがない場合に終了 or ある場合にURLに設定
+[ -z "${ESA_TEAM:-}" ] && echo '[esa] Not found ESA_TEAM.' && exit 1
+
+if [ "${FLAG_A:-}" ]; then
+    open "https://$ESA_TEAM.esa.io/posts/new"
+    exit 0
+fi
+
 POSTS_API=https://api.esa.io/v1/teams/$ESA_TEAM/posts?per_page=40
 
+# 検索クエリがある場合にURLに設定
 [ ! -z "${1:-}" ] && POSTS_API="$POSTS_API&q=$1"
 
 # キャッシュ用ファイルを作成
