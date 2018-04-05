@@ -7,7 +7,9 @@ class Esa < Formula
   url "#{REPOSITORY_URL}/archive/#{HOMEBREW_ESA_VERSION}.tar.gz"
   sha256 "c84a8d17591b23a1cfd5badec00e9b67210096607dc9102318252044eaa6fb3d"
   head "#{REPOSITORY_URL}.git", :tag => HOMEBREW_ESA_VERSION
-  depends_on ["jq", "fzf"]
+  
+  depends_on "jq"
+  depends_on "fzf"
 
   def install
       bin.install "bin/esa"
