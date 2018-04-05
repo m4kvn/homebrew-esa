@@ -1,5 +1,5 @@
 REPOSITORY_URL="https://github.com/m4kvn/homebrew-esa".freeze
-HOMEBREW_ESA_VERSION="0.0.1".freeze
+HOMEBREW_ESA_VERSION="0.0.2".freeze
 
 class Esa < Formula
   desc "Search esa's articles"
