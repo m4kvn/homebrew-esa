@@ -5,7 +5,7 @@ class Esa < Formula
   desc "Search esa's articles"
   homepage "https://github.com/m4kvn/homebrew-esa"
   url "#{REPOSITORY_URL}/archive/#{HOMEBREW_ESA_VERSION}.tar.gz"
-  sha256 "c84a8d17591b23a1cfd5badec00e9b67210096607dc9102318252044eaa6fb3d"
+  sha256 "2d1b36fe2ea7af5f8d76f977325845e0d5a27fa98875a91ea9d7593fffa0821b"
   head "#{REPOSITORY_URL}.git", :tag => HOMEBREW_ESA_VERSION
 
   depends_on "jq"
