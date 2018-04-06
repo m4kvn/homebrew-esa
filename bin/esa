@@ -1,14 +1,18 @@
 #!/bin/bash -eu
 
-while getopts n OPT
-do
-    case $OPT in
-        n) FLAG_A=1 ;;
-        \?) : ;;
-    esac
-done
+PROG_NAME=$(basename $0)
 
-shift $((OPTIND - 1))
+usage() {
+    echo
+    echo "Usage: $PROG_NAME [OPTIONS] QUERY"
+    echo "  This is a script for searching esa articles."
+    echo
+    echo "Options:"
+    echo "  -h, --help : Display help"
+    echo "  -n, --new  : Open a page to create an article"
+    echo
+    exit 1
+}
 
 # ESA_TOKENがない場合に終了
 [ -z "${ESA_TOKEN:-}" ] && echo '[esa] Not found ESA_TOKEN.' && exit 1
@@ -16,15 +20,33 @@ shift $((OPTIND - 1))
 # ESA_TEAMがない場合に終了 or ある場合にURLに設定
 [ -z "${ESA_TEAM:-}" ] && echo '[esa] Not found ESA_TEAM.' && exit 1
 
-if [ "${FLAG_A:-}" ]; then
+# オプションを解析
+for OPT in "$@"; do
+    case "$OPT" in
+        '-h'|'--help') usage ;;
+        '-n'|'--new')
+            FLAG_NEW=1
+            shift 1
+            ;;
+        -*) usage ;;
+        *)
+            params+=("$1")
+            shift 1
+            ;;
+    esac
+done
+
+if [ "${FLAG_NEW:-}" ]; then
     open "https://$ESA_TEAM.esa.io/posts/new"
     exit 0
 fi
 
+# URLにESA_TEAMを設定する
 POSTS_API=https://api.esa.io/v1/teams/$ESA_TEAM/posts?per_page=40
 
 # 検索クエリがある場合にURLに設定
-[ ! -z "${1:-}" ] && POSTS_API="$POSTS_API&q=$1"
+[ ! -z "${params:-}" ] && POSTS_API="$POSTS_API&q=${params[0]}"
+# [ ! -z "${1:-}" ] && POSTS_API="$POSTS_API&q=$1"
 
 # キャッシュ用ファイルを作成
 ESA_TMP=$(mktemp -t esa) && trap "rm -f $ESA_TMP" 0 1 2
