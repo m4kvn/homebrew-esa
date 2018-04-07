@@ -1,6 +1,9 @@
-#!/bin/bash -eu
+#!/bin/bash
 
 PROG_NAME=$(basename $0)
+TOKEN_NAME=$PROG_NAME-command-token
+TEAM_NAME=$PROG_NAME-command-team
+SERVICE_NAME=$PROG_NAME-command
 
 usage() {
     echo
@@ -15,11 +18,42 @@ usage() {
     exit 1
 }
 
-# ESA_TOKENがない場合に終了
-[ -z "${ESA_TOKEN:-}" ] && echo '[esa] Not found ESA_TOKEN.' && exit 1
+# キーチェーンからトークンを取得
+ESA_TOKEN=$(security find-generic-password -w \
+    -a $TOKEN_NAME \
+    -s $SERVICE_NAME 2> /dev/null)
 
-# ESA_TEAMがない場合に終了 or ある場合にURLに設定
-[ -z "${ESA_TEAM:-}" ] && echo '[esa] Not found ESA_TEAM.' && exit 1
+# トークンを入力して保存
+if [ -z $ESA_TOKEN ]; then
+    echo "$PROG_NAME: ESA_TOKEN is not found."
+    printf "Please input your esa token: "
+    read ESA_TOKEN
+
+    [ -z $ESA_TOKEN ] && exit 1
+
+    security add-generic-password \
+        -a $TOKEN_NAME \
+        -w $ESA_TOKEN \
+        -s $SERVICE_NAME
+fi
+
+# キーチェーンからチーム名を取得
+ESA_TEAM=$(security find-generic-password -w \
+    -a $TEAM_NAME \
+    -s $SERVICE_NAME 2> /dev/null)
+
+if [ -z $ESA_TEAM ]; then
+    echo "$PROG_NAME: ESA_TEAM is not found."
+    printf "Please input your esa team name: "
+    read ESA_TEAM
+
+    [ -z $ESA_TEAM ] && exit 1
+
+    security add-generic-password \
+        -a $TEAM_NAME \
+        -w $ESA_TEAM \
+        -s $SERVICE_NAME
+fi
 
 # オプションを解析
 for OPT in "$@"; do
@@ -41,6 +75,7 @@ for OPT in "$@"; do
     esac
 done
 
+# 新規作成フラグの場合に記事作成画面を開いて終了
 if [ "${FLAG_NEW:-}" ]; then
     open "https://$ESA_TEAM.esa.io/posts/new"
     exit 0
