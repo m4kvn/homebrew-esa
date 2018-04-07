@@ -11,11 +11,56 @@ usage() {
     echo "  This is a script for searching esa articles."
     echo
     echo "Options:"
-    echo "  -h, --help : Display help"
-    echo "  -n, --new  : Open a page to create an article"
-    echo "  -N, --num  : Display article number"
+    echo "  -h, --help  : Display help"
+    echo "  -n, --new   : Open a page to create an article"
+    echo "  -N, --num   : Display article number"
+    echo "  --token     : Change your esa token"
+    echo "  --team      : Change your esa team name"
     echo
     exit 1
+}
+
+input_token() {
+    if expr "${1:-}" : "update" > /dev/null; then
+        TOKEN_UPDATE=1
+    fi
+    printf "Please input your esa token: "
+    read ESA_TOKEN
+
+    [ -z $ESA_TOKEN ] && exit 1
+
+    if [ ${TOKEN_UPDATE:-} ]; then
+        security delete-generic-password \
+        -a $TOKEN_NAME \
+        -s $SERVICE_NAME > /dev/null 2> /dev/null
+    fi
+
+    security add-generic-password \
+        -a $TOKEN_NAME \
+        -w $ESA_TOKEN \
+        -s $SERVICE_NAME
+}
+
+input_team() {
+    if expr "${1:-}" : "update" > /dev/null; then
+        TEAM_UPDATE=1
+        echo "Current team name: $ESA_TEAM"
+    fi
+    printf "Please input your esa team name: "
+    read ESA_TEAM
+
+    [ -z $ESA_TEAM ] && exit 1
+
+    if [ ${TEAM_UPDATE:-} ]; then
+        security delete-generic-password \
+        -a $TEAM_NAME \
+        -s $SERVICE_NAME > /dev/null 2> /dev/null
+    fi
+
+    security add-generic-password \
+        -a $TEAM_NAME \
+        -w $ESA_TEAM \
+        -s $SERVICE_NAME
 }
 
 # キーチェーンからトークンを取得
@@ -26,15 +71,7 @@ ESA_TOKEN=$(security find-generic-password -w \
 # トークンを入力して保存
 if [ -z $ESA_TOKEN ]; then
     echo "$PROG_NAME: ESA_TOKEN is not found."
-    printf "Please input your esa token: "
-    read ESA_TOKEN
-
-    [ -z $ESA_TOKEN ] && exit 1
-
-    security add-generic-password \
-        -a $TOKEN_NAME \
-        -w $ESA_TOKEN \
-        -s $SERVICE_NAME
+    input_token
 fi
 
 # キーチェーンからチーム名を取得
@@ -42,17 +79,10 @@ ESA_TEAM=$(security find-generic-password -w \
     -a $TEAM_NAME \
     -s $SERVICE_NAME 2> /dev/null)
 
+# チーム名を入力して保存
 if [ -z $ESA_TEAM ]; then
     echo "$PROG_NAME: ESA_TEAM is not found."
-    printf "Please input your esa team name: "
-    read ESA_TEAM
-
-    [ -z $ESA_TEAM ] && exit 1
-
-    security add-generic-password \
-        -a $TEAM_NAME \
-        -w $ESA_TEAM \
-        -s $SERVICE_NAME
+    input_team
 fi
 
 # オプションを解析
@@ -67,6 +97,14 @@ for OPT in "$@"; do
             FLAG_NUM=1
             shift 1
             ;;
+        '--token')
+            FLAG_TOKEN=1
+            shift 1
+            ;;
+        '--team')
+            FLAG_TEAM=1
+            shift 1
+            ;;
         -*) usage ;;
         *)
             params+=("$1")
@@ -74,6 +112,12 @@ for OPT in "$@"; do
             ;;
     esac
 done
+
+# トークン変更フラグの場合にトーケンを変更から実行する
+[ "${FLAG_TOKEN:-}" ] && input_token update
+
+# チーム名変更フラグの場合にチーム名を変更してから実行する
+[ "${FLAG_TEAM:-}" ] && input_team update
 
 # 新規作成フラグの場合に記事作成画面を開いて終了
 if [ "${FLAG_NEW:-}" ]; then
