@@ -10,6 +10,7 @@ usage() {
     echo "Options:"
     echo "  -h, --help : Display help"
     echo "  -n, --new  : Open a page to create an article"
+    echo "  -N, --num  : Display article number"
     echo
     exit 1
 }
@@ -26,6 +27,10 @@ for OPT in "$@"; do
         '-h'|'--help') usage ;;
         '-n'|'--new')
             FLAG_NEW=1
+            shift 1
+            ;;
+        '-N'|'--num')
+            FLAG_NUM=1
             shift 1
             ;;
         -*) usage ;;
@@ -63,6 +68,11 @@ curl -H "Authorization: Bearer $ESA_TOKEN" \
 # 開くesaを選択する
 FULL_NAME=$(jq -r ".full_name" $ESA_TMP | fzf)
 [ -z "$FULL_NAME" ] && exit 1
+
+if [ "${FLAG_NUM:-}" ]; then
+    echo $(jq -r "select(.full_name == \"$FULL_NAME\") | .number" $ESA_TMP)
+    exit 0
+fi
 
 # 選択されたesaのurlを取得し開く
 open $(jq -r "select(.full_name == \"$FULL_NAME\") | .url" $ESA_TMP)
